@@ -3,9 +3,9 @@ MyAI SDK v2.0 — Agent Developer Kit
 One-line functions for autonomous agent-to-agent commerce.
 
 Usage:
-    from myai import MyAIClient
+    from myai import Client  # alias of MyAIClient
 
-    client = MyAIClient(api_key="myai-sk-...")
+    client = Client(api_key="myai-sk-...")
 
     # Autonomous compute with escrow
     result = await client.bid_and_execute(
@@ -33,7 +33,7 @@ except ImportError:
 
 logger = logging.getLogger(__name__)
 
-DEFAULT_BASE_URL = "http://10.0.0.156:8000"
+DEFAULT_BASE_URL = "https://api.myaitoken.io"
 MYAI_TOKEN_ADDRESS = "0xAfF22CC20434ce43B3ea10efe10e9360390D327c"
 
 class MyAIClient:
@@ -57,7 +57,8 @@ class MyAIClient:
         self.network = network
         self._headers = {}
         if api_key:
-            self._headers["X-API-Key"] = api_key
+            # The coordinator authenticates with a Bearer token (X-API-Key is not accepted).
+            self._headers["Authorization"] = f"Bearer {api_key}"
 
     async def _auth_headers(self) -> dict:
         """Return auth headers, preferring WalletAuth over static api_key."""
@@ -113,7 +114,7 @@ class MyAIClient:
             r = await client.post(
                 f"{self.base_url}/v1/chat/completions",
                 json=payload,
-                headers=self._headers,
+                headers=await self._auth_headers(),
             )
 
             if r.status_code == 402:
@@ -145,7 +146,7 @@ class MyAIClient:
         async with httpx.AsyncClient(timeout=10) as client:
             r = await client.get(
                 f"{self.base_url}/api/v1/reputation/agent/{agent_id}",
-                headers=self._headers,
+                headers=await self._auth_headers(),
             )
             d = r.json()
             return ReputationProfile(
@@ -180,7 +181,7 @@ class MyAIClient:
             r = await client.get(
                 f"{self.base_url}/api/v1/marketplace/providers",
                 params=params,
-                headers=self._headers,
+                headers=await self._auth_headers(),
             )
             providers = r.json().get("providers", [])
             return [
@@ -231,7 +232,7 @@ class MyAIClient:
                     r = await client.get(
                         f"{self.base_url}/api/v1/marketplace/jobs",
                         params={"status": "queued", "limit": 20},
-                        headers=self._headers,
+                        headers=await self._auth_headers(),
                     )
                     jobs = r.json().get("jobs", [])
                     for job in jobs:
@@ -242,3 +243,7 @@ class MyAIClient:
             except Exception as e:
                 logger.warning(f"watch_jobs error: {e}")
             await asyncio.sleep(poll_interval_s)
+
+
+# Short alias used in the docs: ``from myai import Client``
+Client = MyAIClient
