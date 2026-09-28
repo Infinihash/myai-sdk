@@ -2,20 +2,22 @@ from setuptools import setup, find_packages
 
 setup(
     name="myai-sdk",
-    version="2.1.0",
+    version="2.2.1",
     description="MyAI SDK — OpenAI-compatible client + Agent Developer Kit",
     long_description=open("README.md").read(),
     long_description_content_type="text/markdown",
-    url="https://github.com/myaitoken/myai-sdk",
+    url="https://github.com/Infinihash/myai-sdk",
     packages=find_packages(),
     python_requires=">=3.9",
     install_requires=[
         "httpx>=0.24.0",
     ],
     extras_require={
+        "test": ["pytest"],
+        "wallet": ["eth-account>=0.10"],
         "openai": ["openai>=1.0.0"],
         "langchain": ["langchain>=0.1.0", "openai>=1.0.0"],
-        "all": ["openai>=1.0.0", "langchain>=0.1.0"],
+        "all": ["openai>=1.0.0", "langchain>=0.1.0", "eth-account>=0.10"],
     },
     classifiers=[
         "Programming Language :: Python :: 3",

@@ -80,9 +80,9 @@ async def main():
 For autonomous agent-to-agent compute with escrow and Proof-of-Compute:
 
 ```python
-from myai import MyAIClient
+from myai import Client  # alias of MyAIClient
 
-client = MyAIClient(api_key="myai_...")
+client = Client(api_key="myai_...")  # default endpoint: https://api.myaitoken.io, sent as "Authorization: Bearer <key>"
 
 result = await client.bid_and_execute(
     model="llama3:8b",
