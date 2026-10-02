@@ -1,0 +1,38 @@
+name: publish
+# Publishes to PyPI with Trusted Publishing (OIDC) — no API token is stored
+# anywhere. One-time setup on pypi.org (project myai-sdk -> Publishing):
+#   owner Infinihash, repository myai-sdk, workflow publish.yml, environment pypi
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install build && python -m build
+      - name: Version must match the tag
+        if: github.event_name == 'release'
+        run: |
+          v=$(python setup.py --version)
+          test "v$v" = "${GITHUB_REF_NAME}" || { echo "setup.py $v != tag ${GITHUB_REF_NAME}"; exit 1; }
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+  pypi:
+    needs: build
+    runs-on: ubuntu-latest
+    environment: pypi
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+      - uses: pypa/gh-action-pypi-publish@release/v1

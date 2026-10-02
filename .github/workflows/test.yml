@@ -1,0 +1,25 @@
+name: test
+on:
+  pull_request:
+  push:
+    branches: [main]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -e ".[test]"
+      - run: python -m pytest -q
+      - name: Quickstart import contract
+        # The docs tell strangers `from myai import Client` and expect the
+        # public endpoint by default. 2.0.0 on PyPI broke both silently.
+        run: |
+          python - <<'PY'
+          from myai import Client, MyAIClient
+          from myai.client import DEFAULT_BASE_URL
+          assert Client is MyAIClient
+          assert DEFAULT_BASE_URL.startswith("https://api.myaitoken.io"), DEFAULT_BASE_URL
+          PY
